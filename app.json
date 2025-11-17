@@ -1,0 +1,18 @@
+{
+  "expo": {
+    "name": "Expense Tracker Drive",
+    "slug": "expense-tracker-drive",
+    "version": "1.0.0",
+    "platforms": [
+      "android",
+      "web"
+    ],
+    "sdkVersion": "48.0.0",
+    "android": {
+      "package": "expense.tracker.sunil.tripathi"
+    },
+    "ios": {
+      "bundleIdentifier": "expense.tracaker.sunil.triapthi.ios"
+    }
+  }
+}
