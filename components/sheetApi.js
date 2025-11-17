@@ -1,4 +1,4 @@
-const SHEET_API = "https://script.google.com/macros/s/AKfycbydHzgxA4SczIY9JN1SZhuQkzbAdAW0bQSKMRMKeb01vWdcuFh1afw7VHev31_vF_UiJw/exec";
+const SHEET_API = "https://script.google.com/macros/s/AKfycbyl7CUNp-EXPvDqpfbO3oBPHhd7SWsGaXUf-OFG6zqDDMMYaPGElW81VPt59HttLyhxfQ/exec";
 
 export async function getExpenses() {
   try {

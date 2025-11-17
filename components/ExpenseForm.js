@@ -3,6 +3,7 @@ import { View, TextInput, Button, StyleSheet, Text, Platform, ScrollView, Activi
 import { Picker } from '@react-native-picker/picker';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import { getExpenses, addExpense } from './sheetApi';
+import ExpenseList from './ExpenseList';
 
 export default function ExpenseForm() {
   const [date, setDate] = useState(new Date());
@@ -19,6 +20,7 @@ export default function ExpenseForm() {
   }, []);
 
   async function loadExpenses() {
+    setLoading(true);
     const data = await getExpenses();
     setLoading(false);
     setExpenses(data);   // <-- STORE IN STATE
@@ -38,8 +40,8 @@ export default function ExpenseForm() {
     };
 
     // ---- Send to Google Sheets ----
-    await addExpense(newExpense);
-
+    addExpense(newExpense);
+     alert('Expense added successfully!');
     // ---- Refresh from Google Sheets ----
     await loadExpenses();
 
@@ -111,31 +113,7 @@ export default function ExpenseForm() {
 
       <Text style={styles.listTitle}>Your Expenses</Text>
 
-     {loading ? (
-  <View style={{ marginTop: 40, alignItems: "center" }}>
-    <ActivityIndicator size="large" color="#2196F3" />
-    <Text style={{ marginTop: 10 }}>Loading expenses...</Text>
-  </View>
-) : (
-  <ScrollView style={{ marginTop: 10 }}>
-    {expenses.map((e, index) => (
-      <View
-        key={index}
-        style={[
-          styles.row,
-          { backgroundColor: index % 2 === 0 ? "#ffffff" : "#e6f3ff" },
-        ]}
-      >
-        <Text style={styles.rowText}>
-          {new Date(e.date).toDateString()}
-        </Text>
-        <Text style={styles.rowText}>{e.remark}</Text>
-        <Text style={styles.rowText}>₹{e.cashOut}</Text>
-        <Text style={styles.rowText}>{e.category}</Text>
-      </View>
-    ))}
-  </ScrollView>
-)}
+      <ExpenseList expenses={expenses} loading={loading} />
     </View>
   );
 }
