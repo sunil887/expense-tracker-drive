@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { View, TextInput, Button, StyleSheet, Text, Platform, ScrollView, ActivityIndicator } from 'react-native';
 import { Picker } from '@react-native-picker/picker';
 import DateTimePicker from '@react-native-community/datetimepicker';
@@ -13,7 +13,9 @@ export default function ExpenseForm() {
   const [category, setCategory] = useState('Food');
   const [loading, setLoading] = useState(true);
 
-  const [expenses, setExpenses] = useState([]);  // <-- LIST OF ROWS
+  const [expenses, setExpenses] = useState([]);  
+
+  const [summaryType, setSummaryType] = useState("currentMonth"); // NEW STATE
 
   useEffect(() => {
     loadExpenses();
@@ -23,7 +25,7 @@ export default function ExpenseForm() {
     setLoading(true);
     const data = await getExpenses();
     setLoading(false);
-    setExpenses(data);   // <-- STORE IN STATE
+    setExpenses(data);
   }
 
   async function handleAdd() {
@@ -39,16 +41,84 @@ export default function ExpenseForm() {
       category
     };
 
-    // ---- Send to Google Sheets ----
     addExpense(newExpense);
-     alert('Expense added successfully!');
-    // ---- Refresh from Google Sheets ----
+
+    alert('Expense added successfully!');
+
     await loadExpenses();
 
-    // ---- Clear form ----
     setDescription('');
     setAmount('');
   }
+
+  // ------- SUMMARY CALCULATIONS --------
+
+  const thisMonth = date.getMonth();
+  const thisYear = date.getFullYear();
+
+  const lastMonth = thisMonth === 0 ? 11 : thisMonth - 1;
+  const lastMonthYear = thisMonth === 0 ? thisYear - 1 : thisYear;
+
+  // Current Month
+  const currentMonthExpenses = expenses
+    .filter(exp => {
+      const d = new Date(exp.date);
+      return d.getMonth() === thisMonth && d.getFullYear() === thisYear;
+    })
+    .reduce((sum, exp) => sum + (exp.cashOut || 0), 0);
+
+  // Last Month
+  const lastMonthExpenses = expenses
+    .filter(exp => {
+      const d = new Date(exp.date);
+      return d.getMonth() === lastMonth && d.getFullYear() === lastMonthYear;
+    })
+    .reduce((sum, exp) => sum + (exp.cashOut || 0), 0);
+
+  // Annual (Current Year)
+  const currentAnnualExpenses = expenses
+    .filter(exp => {
+      const d = new Date(exp.date);
+      return d.getFullYear() === thisYear;
+    })
+    .reduce((sum, exp) => sum + (exp.cashOut || 0), 0);
+
+  // Monthly totals for current year
+  const monthlyTotals = Array.from({ length: 12 }, () => 0);
+  expenses.forEach(exp => {
+    const d = new Date(exp.date);
+    if (d.getFullYear() === thisYear) {
+      monthlyTotals[d.getMonth()] += (exp.cashOut || 0);
+    }
+  });
+
+  // Average monthly expense for full year (divide by 12)
+  const averageMonthlyExpense = monthlyTotals.reduce((sum, v) => sum + v, 0) / 12;
+
+  // Average monthly expense up to current month (inclusive)
+  const monthsElapsed = thisMonth + 1;
+  const averageMonthlyToDate = monthsElapsed > 0
+    ? monthlyTotals.slice(0, monthsElapsed).reduce((s, v) => s + v, 0) / monthsElapsed
+    : 0;
+  
+
+  // Selected summary
+  function computeSummaryValue() {
+    switch (summaryType) {
+      case 'currentMonth':
+        return currentMonthExpenses;
+      case 'lastMonth':
+        return lastMonthExpenses;
+      case 'monthlyAverage':
+        return averageMonthlyToDate;
+      case 'currentAnnual':
+        return currentAnnualExpenses;
+      default:
+        return 0;
+    }
+  }
+
+  const summaryValue = computeSummaryValue();
 
   return (
     <View style={{ flex: 1, padding: 16 }}>
@@ -110,6 +180,20 @@ export default function ExpenseForm() {
       </View>
 
       <Button title="Add Expense" onPress={handleAdd} />
+
+      {/* SUMMARY DROPDOWN */}
+      <Text style={styles.listTitle}>Expense Summary</Text>
+
+      <View style={styles.pickerWrap}>
+        <Picker selectedValue={summaryType} onValueChange={setSummaryType}>
+          <Picker.Item label="Current Month Expense" value="currentMonth" />
+          <Picker.Item label="Last Month Expense" value="lastMonth" />
+          <Picker.Item label="Current Annual Expense" value="currentAnnual" />
+          <Picker.Item label="Current Monthly Average Expense" value="monthlyAverage" />
+        </Picker>
+      </View>
+
+      <Text> Selected summary : {summaryValue}</Text>
 
       <Text style={styles.listTitle}>Your Expenses</Text>
 
