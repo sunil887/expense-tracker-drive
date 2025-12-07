@@ -86,12 +86,12 @@ export default function AddExpenseForm({ onAdded }) {
       <View style={styles.pickerWrap}>
         <Picker selectedValue={category} onValueChange={setCategory} enabled={!submitting}>
           <Picker.Item label="Miscellaneous" value="Miscellaneous" />
-          <Picker.Item label="Outstation fun travel" value="Outstation fun travel" />
+          <Picker.Item label="Outstation fun traveling" value="Outstation fun traveling" />
           <Picker.Item label="Travel and fuel" value="Travel and fuel" />
           <Picker.Item label="Wants Item" value="Wants Item" />
           <Picker.Item label="Rent" value="Rent" />
           <Picker.Item label="internet and comms" value="internet and comms" />
-          <Picker.Item label="Medical bills + medic" value="Medical bills + medic" />
+          <Picker.Item label="Medical bills + medicine" value="Medical bills + medicine" />
           <Picker.Item label="PurposeOfLife" value="PurposeOfLife" />
           <Picker.Item label="Entertainment" value="Entertainment" />
           <Picker.Item label="Relationship" value="Relationship" />
