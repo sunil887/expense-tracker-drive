@@ -6,6 +6,7 @@ import ExpenseList from './ExpenseList';
 
 export default function ExpenseSummaryList({ refreshTrigger }) {
   const [expenses, setExpenses] = useState([]);
+  const [filteredExpenses, setFilteredExpenses] = useState([]);
   const [loading, setLoading] = useState(true);
   const [summaryType, setSummaryType] = useState('currentMonth');
   const [date] = useState(new Date());
@@ -14,11 +15,51 @@ export default function ExpenseSummaryList({ refreshTrigger }) {
     loadExpenses();
   }, [refreshTrigger]);
 
+  const handleSetSummaryType = (value) => {
+    setSummaryType(value);
+    filterExpensesBySummaryType(value, expenses);
+  }
+
+  const filterExpensesBySummaryType = (type, expenseList) => {
+    const thisMonth = date.getMonth();
+    const thisYear = date.getFullYear();
+    const lastMonth = thisMonth === 0 ? 11 : thisMonth - 1;
+    const lastMonthYear = thisMonth === 0 ? thisYear - 1 : thisYear;
+
+    let filtered = [];
+    
+    switch (type) {
+      case 'currentMonth':
+        filtered = expenseList.filter(exp => {
+          const d = new Date(exp.date);
+          return d.getMonth() === thisMonth && d.getFullYear() === thisYear;
+        });
+        break;
+      case 'lastMonth':
+        filtered = expenseList.filter(exp => {
+          const d = new Date(exp.date);
+          return d.getMonth() === lastMonth && d.getFullYear() === lastMonthYear;
+        });
+        break;
+      case 'currentAnnual':
+        filtered = expenseList.filter(exp => new Date(exp.date).getFullYear() === thisYear);
+        break;
+      case 'monthlyAverage':
+        filtered = expenseList;
+        break;
+      default:
+        filtered = expenseList;
+    }
+    
+    setFilteredExpenses(filtered);
+  }
+
   async function loadExpenses() {
     try {
       setLoading(true);
       const data = await getExpenses();
       setExpenses(data || []);
+      filterExpensesBySummaryType(summaryType, data || []);
     } catch (err) {
       console.error(err);
     } finally {
@@ -77,7 +118,7 @@ export default function ExpenseSummaryList({ refreshTrigger }) {
       <Text style={styles.title}>Expense Summary</Text>
 
       <View style={styles.pickerWrap}>
-        <Picker selectedValue={summaryType} onValueChange={setSummaryType}>
+        <Picker selectedValue={summaryType} onValueChange={handleSetSummaryType}>
           <Picker.Item label="Current Month Expense" value="currentMonth" />
           <Picker.Item label="Last Month Expense" value="lastMonth" />
           <Picker.Item label="Current Annual Expense" value="currentAnnual" />
@@ -97,10 +138,10 @@ export default function ExpenseSummaryList({ refreshTrigger }) {
           <ActivityIndicator size="large" color="#2196F3" />
           <Text style={{ marginTop: 10 }}>Loading expenses...</Text>
         </View>
-      ) : expenses.length === 0 ? (
-        <Text style={styles.emptyText}>No expenses yet.</Text>
+      ) : filteredExpenses.length === 0 ? (
+        <Text style={styles.emptyText}>No expenses for this summary criteria.</Text>
       ) : (
-        <ExpenseList expenses={expenses} loading={false} />
+        <ExpenseList expenses={filteredExpenses} loading={false} />
       )}
     </ScrollView>
   );
